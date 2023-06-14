@@ -4,17 +4,28 @@ This code defines a class which "latches" a given folder.
 
 # Standard imports.
 import random
+import shutil
 import string
 from pathlib import Path
 
 # Non-standard imports.
-from Crypto.PublicKey import RSA
+import secrets
+import base64
+from cryptography.fernet import Fernet
+from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
 
 # Local constants.
+ARCHIVE_FORMAT = "zip"
+ARCHIVE_SUFFIX = ".zip"
+BLOCK_SIZE = 8
 FILENAME_LENGTH = 9
+KEY_LENGTH = 32
+MEMORY_COST = 2**14
 PUBLIC_KEY_LENGTH = 2048
 PUBLIC_KEY_FILENAME = "latch.pem"
 PUBLIC_KEY_FILE_MODE = "PEM"
+SALT_FILENAME = ".latch.salt"
+SALT_LENGTH = 16
 
 ##############
 # MAIN CLASS #
@@ -22,34 +33,106 @@ PUBLIC_KEY_FILE_MODE = "PEM"
 
 class Latcher:
     """ The class in question. """
-    def __init__(self, path_to_target, relatch=False)
-        path_obj_to_parent = Path(path_to_target).parent
-        target_name = Path(path_to_target).name
-        self.relatch = relatch
+    def __init__(self, path_to_target, relatch=False):
         self.path_to_target = path_to_target
-        self.path_to_encrypted = \
-            str((path_obj_to_parent/make_random_string()).resolve())
-        self.path_to_public_key = \
-            str((path_obj_to_parent/PUBLIC_KEY_FILENAME).resolve())
-        self.public_key = self.get_public_key()
+        self.relatch = relatch
+        self._path_obj_to_parent = Path(path_to_target).parent
+        self._target_name = Path(path_to_target).stem
+        self.path_to_encrypted = self.get_path_to_encrypted()
+        self.path_to_zip = self.get_path_to_zip()
+        self.path_to_salt = self.get_path_to_salt()
+        self.salt = self.get_salt()
 
-    def generate_public_key(self):
-        """ Generate a public key file ex nihilo. """
-        key = RSA.generate(PUBLIC_KEY_LENGTH)
-        with open(PUBLIC_KEY_FILENAME, "wb") as key_file:
-            key_file.write(key.export_key(PUBLIC_KEY_FILE_MODE))
-
-    def get_public_key(self):
-        """ Read the public from the file. Create the file if possible and
-        necessary. """
-        if not Path(self.path_to_public_key).exists():
-            if self.relatch:
-                self.generate_public_key()
-            else:
-                raise LatcherError("No public key file.")
-        with open(self.path_to_public_key, "rb") as key_file:
-            result = RSA.import_key(key_file.read())
+    def get_path_to_encrypted(self):
+        """ Ronseal. """
+        path_obj = self._path_obj_to_parent/make_random_string()
+        result = str(path_obj.resolve())
         return result
+
+    def get_path_to_zip(self):
+        """ Ronseal. """
+        path_obj = self._path_obj_to_parent/(self._target_name+ARCHIVE_SUFFIX)
+        result = str(path_obj.resolve())
+        return result
+
+    def get_path_to_salt(self):
+        """ Ronseal. """
+        path_obj = self._path_obj_to_parent/SALT_FILENAME
+        result = str(path_obj.resolve())
+        return result
+
+    def get_salt(self):
+        """ Return the salt object, generating it as necessary. """
+        if Path(self.path_to_salt).exists():
+            with open(self.path_to_salt, "rb") as salt_file:
+                result = salt_file.read()
+        else:
+            if not self.relatch:
+                raise LatcherError("No salt file at: "+self.path_to_salt)
+            result = secrets.token_bytes(SALT_LENGTH)
+            with open(self.path_to_salt, "wb") as salt_file:
+                salt_file.write(result)
+        return result
+
+    def zip_target(self):
+        """ Zip the target directory. """
+        if Path(self.path_to_zip).exists():
+            raise LatcherError(
+                "Zip file at already exists at: "+
+                self.path_to_zip
+            )
+        if not Path(self.path_to_target).is_dir():
+            raise LatcherError(
+                "Target is not a folder: "+
+                self.path_to_target
+            )
+        path_obj_to_zip = Path(self.path_to_zip)
+        archive_command_path = \
+            str(path_obj_to_zip.parent/path_obj_to_zip.stem)
+        shutil.make_archive(
+            archive_command_path,
+            ARCHIVE_FORMAT,
+            self.path_to_target
+        )
+        return True
+
+    def get_byte_data_to_encrypt(self):
+        """ Read in the zip file, and return the bytes therein. """
+        if not Path(self.path_to_zip).exists():
+            raise LatcherError("No zip file to read in at: "+self.path_to_zip)
+        with open(self.path_to_zip, "rb") as zip_file:
+            result = zip_file.read()
+        return result
+
+    def encrypt(self, password):
+        """ Build an encrypted version of the zipped target. """
+        byte_data = self.get_byte_data_to_encrypt()
+        key = make_key(self.salt, password)
+        fernet_obj = Fernet(key)
+        encrypted_data = fernet_obj.encrypt(byte_data)
+        if Path(self.path_to_encrypted).exists():
+            raise LatcherError(
+                "Encrypted file at "+
+                self.path_to_encrypted+
+                " already exists."
+            )
+        with open(self.path_to_encrypted, "wb") as encrypted_file:
+            encrypted_file.write(encrypted_data)
+
+    def clean(self):
+        """ Remove any unencrypted data, as well as any generated files. """
+        files_to_remove = (self.path_to_zip,)
+        folders_to_remove = (self.path_to_target,)
+        for file_path in files_to_remove:
+            Path(file_path).unlink()
+        for folder_path in folders_to_remove:
+            shutil.rmtree(folder_path)
+
+    def latch(self, password):
+        """ (1) Zip. (2) Encrypt. (3) Clean. """
+        self.zip_target()
+        self.encrypt(password)
+        self.clean()
 
 ################################
 # HELPER FUNCTIONS AND CLASSES #
@@ -58,7 +141,7 @@ class Latcher:
 class LatcherError(Exception):
     """ A custom exception. """
 
-def make_random_string(self):
+def make_random_string():
     """ Construct a string of random characters. """
     result = \
         "".join(
@@ -66,3 +149,22 @@ def make_random_string(self):
             for _ in range(FILENAME_LENGTH)
         )
     return result
+
+def make_key(salt, password):
+    """Derive the key from the password using the passed salt. """
+    parallelisation_parameter = 1
+    key_derivation_function = \
+        Scrypt(
+            salt,
+            KEY_LENGTH,
+            MEMORY_COST,
+            BLOCK_SIZE,
+            parallelisation_parameter
+        )
+    derived_key = key_derivation_function.derive(password.encode())
+    result = base64.urlsafe_b64encode(derived_key)
+    return result
+
+if __name__ == "__main__":
+    latcher = Latcher("./smeg/")
+    latcher.latch("password")

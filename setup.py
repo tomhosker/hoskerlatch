@@ -18,7 +18,8 @@ SCRIPT_PATHS = (
     "scripts/relatch"
 )
 INSTALL_REQUIRES = (
-    "hosker-utils"
+    "hosker-utils",
+    "pycrypto"
 )
 INCLUDE_PACKAGE_DATA = True
 
