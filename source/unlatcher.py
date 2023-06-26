@@ -3,16 +3,11 @@ This code defines a class which "unlatches" a given folder.
 """
 
 # Standard imports.
-import random
 import shutil
-import string
 from pathlib import Path
 
 # Non-standard imports.
-import secrets
-import base64
 from cryptography.fernet import Fernet, InvalidToken
-from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
 
 # Local imports.
 from latcher import Latcher, LatcherError, make_key
@@ -24,6 +19,7 @@ from latcher import Latcher, LatcherError, make_key
 class Unlatcher(Latcher):
     """ The class in question. """
     def __init__(self, path_to_target, relatch=False):
+        super().__init__(path_to_target)
         self.path_to_target = path_to_target
         self.relatch = relatch
         self._path_obj_to_parent = Path(path_to_target).parent
@@ -82,7 +78,3 @@ class Unlatcher(Latcher):
         self.decrypt(password)
         self.unzip_target()
         self.clean()
-
-if __name__ == "__main__":
-    unlatcher = Unlatcher("./kt22l8oir")
-    unlatcher.unlatch("password")

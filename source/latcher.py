@@ -164,7 +164,3 @@ def make_key(salt, password):
     derived_key = key_derivation_function.derive(password.encode())
     result = base64.urlsafe_b64encode(derived_key)
     return result
-
-if __name__ == "__main__":
-    latcher = Latcher("./smeg/")
-    latcher.latch("password")

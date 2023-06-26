@@ -3,7 +3,7 @@ This code defines a continuous integration routine for this repository.
 """
 
 # Local imports.
-from source.continuous_integration import run_continuous_integration
+from hosker_utils.continuous_integration import run_continuous_integration
 
 ###################
 # RUN AND WRAP UP #
