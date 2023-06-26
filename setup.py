@@ -6,18 +6,14 @@ This code defines the script required by setuptools.
 from setuptools import setup
 
 # Local constants.
-PACKAGE_NAME = "latch_unlatch"
-VERSION = "0.1.0"
+PACKAGE_NAME = "hoskerlatch"
+VERSION = "1.0.0"
 DESCRIPTION = "Encrypt and decrypt folders to a medium standard of security"
 GIT_URL_STEM = "https://github.com/tomhosker"
 AUTHOR = "Tom Hosker"
 AUTHOR_EMAIL = "tomdothosker@gmail.com"
-SCRIPT_PATHS = None
-#SCRIPT_PATHS = ("scripts/latch", "scripts/unlatch")
-INSTALL_REQUIRES = (
-    "hosker-utils",
-    "pycrypto"
-)
+SCRIPT_PATHS = ("scripts/hoskerlatch", "scripts/hoskerunlatch")
+INSTALL_REQUIRES = ("cryptography", "hosker-utils")
 INCLUDE_PACKAGE_DATA = True
 
 ###################################

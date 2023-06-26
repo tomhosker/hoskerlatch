@@ -1,0 +1,43 @@
+#!/bin/python3
+
+"""
+This script "latches" a given folder.
+"""
+
+# Standard imports.
+import argparse
+
+# Bespoke imports.
+from latch_unlatch import unlatch
+
+#############
+# FUNCTIONS #
+#############
+
+def make_parser():
+    """ Make the parser object. """
+    desc_str = '"Unlatch" an encrypted folder'
+    result = argparse.ArgumentParser(description=desc_str)
+    result.add_argument(
+        "path_to_encrypted",
+        help="The path to the folder to be latched"
+    )
+    result.add_argument(
+        "password",
+        help='The password with which to "latch" the folder'
+    )
+    return result
+
+###################
+# RUN AND WRAP UP #
+###################
+
+def run():
+    """ Run this file. """
+    parser = make_parser()
+    arguments = parser.parse_args()
+    path_to_decrypted = latch(arguments.path_to_encrypted, arguments.password)
+    print("Unlatched to: "+path_to_encrypted)
+
+if __name__ == "__main__":
+    run()

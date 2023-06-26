@@ -3,14 +3,14 @@ This code defines a class which "latches" a given folder.
 """
 
 # Standard imports.
+import base64
 import random
+import secrets
 import shutil
 import string
 from pathlib import Path
 
 # Non-standard imports.
-import secrets
-import base64
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
 
