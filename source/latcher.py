@@ -33,9 +33,9 @@ SALT_LENGTH = 16
 
 class Latcher:
     """ The class in question. """
-    def __init__(self, path_to_target, relatch=False):
+    def __init__(self, path_to_target, resalt=False):
         self.path_to_target = path_to_target
-        self.relatch = relatch
+        self.resalt = resalt
         self._path_obj_to_parent = Path(path_to_target).parent
         self._target_name = Path(path_to_target).stem
         self.path_to_encrypted = self.get_path_to_encrypted()
@@ -63,12 +63,10 @@ class Latcher:
 
     def get_salt(self):
         """ Return the salt object, generating it as necessary. """
-        if Path(self.path_to_salt).exists():
+        if Path(self.path_to_salt).exists() and not self.resalt:
             with open(self.path_to_salt, "rb") as salt_file:
                 result = salt_file.read()
         else:
-            if not self.relatch:
-                raise LatcherError("No salt file at: "+self.path_to_salt)
             result = secrets.token_bytes(SALT_LENGTH)
             with open(self.path_to_salt, "wb") as salt_file:
                 salt_file.write(result)

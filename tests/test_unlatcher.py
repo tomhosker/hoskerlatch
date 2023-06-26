@@ -7,8 +7,8 @@ import shutil
 from pathlib import Path
 
 # Source imports.
-from source.latcher import Latcher
-from source.unlatcher import Unlatcher
+from source import latch, unlatch
+from source.latcher import SALT_FILENAME
 
 ###########
 # TESTING #
@@ -23,20 +23,19 @@ def test_unlatcher():
     path_obj_to_test_folder = Path(test_dirname)
     path_obj_to_test_folder.mkdir()
     (path_obj_to_test_folder/test_filename).touch()
-    # Run latcher obj.
-    latcher = Latcher(test_dirname, relatch=True)
-    latcher.latch(password)
-    path_obj_to_encrypted = Path(latcher.path_to_encrypted)
-    # Check latcher obj has done its job.
+    # Run latch().
+    path_to_encrypted = latch(test_dirname, password)
+    path_obj_to_encrypted = Path(path_to_encrypted)
+    # Check latch() has done its job.
     assert path_obj_to_encrypted.exists()
     assert not path_obj_to_test_folder.exists()
-    # Run unlatcher obj.
-    unlatcher = Unlatcher(latcher.path_to_encrypted, relatch=True)
-    unlatcher.unlatch(password)
-    path_obj_to_decrypted = Path(unlatcher.path_to_decrypted)
+    # Run unlatch().
+    path_to_decrypted = unlatch(path_to_encrypted, password)
+    path_obj_to_decrypted = Path(path_to_decrypted)
     # Assert.
     assert not path_obj_to_encrypted.exists()
     assert path_obj_to_decrypted.exists()
     assert (path_obj_to_decrypted/test_filename).exists()
     # Clean.
-    shutil.rmtree(unlatcher.path_to_decrypted)
+    shutil.rmtree(path_to_decrypted)
+    Path(SALT_FILENAME).unlink()

@@ -10,7 +10,7 @@ from pathlib import Path
 from cryptography.fernet import Fernet, InvalidToken
 
 # Local imports.
-from latcher import Latcher, LatcherError, make_key
+from .latcher import Latcher, LatcherError, make_key
 
 ##############
 # MAIN CLASS #
@@ -18,10 +18,9 @@ from latcher import Latcher, LatcherError, make_key
 
 class Unlatcher(Latcher):
     """ The class in question. """
-    def __init__(self, path_to_target, relatch=False):
+    def __init__(self, path_to_target):
         super().__init__(path_to_target)
         self.path_to_target = path_to_target
-        self.relatch = relatch
         self._path_obj_to_parent = Path(path_to_target).parent
         self._target_name = Path(path_to_target).stem
         self.path_to_decrypted = path_to_target+"_"

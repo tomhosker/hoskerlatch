@@ -12,11 +12,8 @@ DESCRIPTION = "Encrypt and decrypt folders to a medium standard of security"
 GIT_URL_STEM = "https://github.com/tomhosker"
 AUTHOR = "Tom Hosker"
 AUTHOR_EMAIL = "tomdothosker@gmail.com"
-SCRIPT_PATHS = (
-    "scripts/latch",
-    "scripts/unlatch",
-    "scripts/relatch"
-)
+SCRIPT_PATHS = None
+#SCRIPT_PATHS = ("scripts/latch", "scripts/unlatch")
 INSTALL_REQUIRES = (
     "hosker-utils",
     "pycrypto"
