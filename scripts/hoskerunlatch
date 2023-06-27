@@ -6,9 +6,10 @@ This script "latches" a given folder.
 
 # Standard imports.
 import argparse
+from getpass import getpass
 
 # Bespoke imports.
-from latch_unlatch import unlatch
+from hoskerlatch import unlatch
 
 #############
 # FUNCTIONS #
@@ -22,10 +23,6 @@ def make_parser():
         "path_to_encrypted",
         help="The path to the folder to be latched"
     )
-    result.add_argument(
-        "password",
-        help='The password with which to "latch" the folder'
-    )
     return result
 
 ###################
@@ -36,7 +33,9 @@ def run():
     """ Run this file. """
     parser = make_parser()
     arguments = parser.parse_args()
-    path_to_decrypted = latch(arguments.path_to_encrypted, arguments.password)
+    path_to_encrypted = arguments.path_to_encrypted
+    password = getpass()
+    path_to_decrypted = unlatch(path_to_encrypted, password)
     print("Unlatched to: "+path_to_encrypted)
 
 if __name__ == "__main__":
