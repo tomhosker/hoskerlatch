@@ -7,7 +7,7 @@ from setuptools import setup
 
 # Local constants.
 PACKAGE_NAME = "hoskerlatch"
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 DESCRIPTION = "Encrypt and decrypt folders to a medium standard of security"
 GIT_URL_STEM = "https://github.com/tomhosker"
 AUTHOR = "Tom Hosker"

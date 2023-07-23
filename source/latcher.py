@@ -18,6 +18,7 @@ from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
 ARCHIVE_FORMAT = "zip"
 ARCHIVE_SUFFIX = ".zip"
 BLOCK_SIZE = 8
+DEFAULT_PASSES = 3
 FILENAME_LENGTH = 9
 KEY_LENGTH = 32
 MEMORY_COST = 2**14
@@ -122,9 +123,9 @@ class Latcher:
         files_to_remove = (self.path_to_zip,)
         folders_to_remove = (self.path_to_target,)
         for file_path in files_to_remove:
-            Path(file_path).unlink()
+            secure_delete_file(file_path)
         for folder_path in folders_to_remove:
-            shutil.rmtree(folder_path)
+            secure_delete_folder(folder_path)
 
     def latch(self, password):
         """ (1) Zip. (2) Encrypt. (3) Clean. """
@@ -149,7 +150,7 @@ def make_random_string():
     return result
 
 def make_key(salt, password):
-    """Derive the key from the password using the passed salt. """
+    """ Derive the key from the password using the passed salt. """
     parallelisation_parameter = 1
     key_derivation_function = \
         Scrypt(
@@ -162,3 +163,23 @@ def make_key(salt, password):
     derived_key = key_derivation_function.derive(password.encode())
     result = base64.urlsafe_b64encode(derived_key)
     return result
+
+def secure_delete_file(path_to_file, passes=DEFAULT_PASSES):
+    """ Securely delete a given file. """
+    path_obj_to_file = Path(path_to_file)
+    length = path_obj_to_file.stat().st_size
+    with open(path_to_file, "br+", buffering=-1) as file_to_overwrite:
+        for _ in range(passes):
+            file_to_overwrite.seek(0)
+            file_to_overwrite.write(secrets.SystemRandom().randbytes(length))
+    path_obj_to_file.unlink()
+
+def secure_delete_folder(path_to_folder, passes=DEFAULT_PASSES):
+    """ Securely delete a given folder, recursively. """
+    path_obj_to_folder = Path(path_to_folder)
+    for subpath in path_obj_to_folder.glob("*"):
+        if subpath.is_dir():
+            secure_delete_folder(str(subpath))
+        else:
+            secure_delete_file(str(subpath))
+    shutil.rmtree(path_to_folder)
