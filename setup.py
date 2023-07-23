@@ -7,12 +7,16 @@ from setuptools import setup
 
 # Local constants.
 PACKAGE_NAME = "hoskerlatch"
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 DESCRIPTION = "Encrypt and decrypt folders to a medium standard of security"
 GIT_URL_STEM = "https://github.com/tomhosker"
 AUTHOR = "Tom Hosker"
 AUTHOR_EMAIL = "tomdothosker@gmail.com"
-SCRIPT_PATHS = ("scripts/hoskerlatch", "scripts/hoskerunlatch")
+SCRIPT_PATHS = (
+    "scripts/hoskerlatch",
+    "scripts/hoskerunlatch",
+    "scripts/hoskerlatch-install-specials"
+)
 INSTALL_REQUIRES = ("cryptography", "hosker-utils")
 INCLUDE_PACKAGE_DATA = True
 

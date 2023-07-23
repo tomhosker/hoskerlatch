@@ -8,6 +8,7 @@ import random
 import secrets
 import shutil
 import string
+import subprocess
 from pathlib import Path
 
 # Non-standard imports.
@@ -18,7 +19,6 @@ from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
 ARCHIVE_FORMAT = "zip"
 ARCHIVE_SUFFIX = ".zip"
 BLOCK_SIZE = 8
-DEFAULT_PASSES = 3
 FILENAME_LENGTH = 9
 KEY_LENGTH = 32
 MEMORY_COST = 2**14
@@ -164,20 +164,13 @@ def make_key(salt, password):
     result = base64.urlsafe_b64encode(derived_key)
     return result
 
-def secure_delete_file(path_to_file, passes=DEFAULT_PASSES):
+def secure_delete_file(path_to_file):
     """ Securely delete a given file. """
-    path_obj_to_file = Path(path_to_file)
-    length = path_obj_to_file.stat().st_size
-    with open(path_to_file, "br+", buffering=-1) as file_to_overwrite:
-        for _ in range(passes):
-            file_to_overwrite.seek(0)
-            file_to_overwrite.write(secrets.SystemRandom().randbytes(length))
-    path_obj_to_file.unlink()
+    subprocess.run(["srm", path_to_file], check=True)
 
-def secure_delete_folder(path_to_folder, passes=DEFAULT_PASSES):
+def secure_delete_folder(path_to_folder):
     """ Securely delete a given folder, recursively. """
-    path_obj_to_folder = Path(path_to_folder)
-    for subpath in path_obj_to_folder.glob("*"):
+    for subpath in Path(path_to_folder).glob("*"):
         if subpath.is_dir():
             secure_delete_folder(str(subpath))
         else:
